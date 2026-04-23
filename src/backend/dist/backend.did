@@ -1,0 +1,153 @@
+type _ImmutableObjectStorageRefillResult = 
+ record {
+   success: opt bool;
+   topped_up_amount: opt nat;
+ };
+type _ImmutableObjectStorageRefillInformation = record {
+                                                  proposed_top_up_amount:
+                                                   opt nat;};
+type _ImmutableObjectStorageCreateCertificateResult = 
+ record {
+   blob_hash: text;
+   method: text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   "principal": principal;
+   registrationTime: Time;
+   username: text;
+ };
+type Time = int;
+type ThreadMessageSummary = 
+ record {
+   latestMessage: Message;
+   messages: vec Message;
+   participants: vec principal;
+   subject: text;
+   threadId: nat;
+   totalMessages: nat;
+   unreadCount: nat;
+ };
+type Payment = 
+ record {
+   amount: nat64;
+   memo: opt text;
+   token: text;
+ };
+type MessageUpdate = 
+ record {
+   body: opt text;
+   subject: opt text;
+ };
+type MessageInput = 
+ record {
+   attachments: vec Attachment;
+   body: text;
+   parentId: opt MessageId;
+   payment: opt Payment;
+   recipient: principal;
+   subject: text;
+ };
+type MessageId = nat;
+type Message = 
+ record {
+   attachments: vec Attachment;
+   body: text;
+   deletedByRecipient: bool;
+   deletedBySender: bool;
+   id: MessageId;
+   isRead: bool;
+   parentId: opt MessageId;
+   payment: opt Payment;
+   recipient: principal;
+   sender: principal;
+   subject: text;
+   threadId: nat;
+   timestamp: Time;
+   trashedByRecipient: bool;
+   trashedBySender: bool;
+ };
+type Attachment = 
+ record {
+   filename: text;
+   hash: text;
+   mimeType: text;
+   size: nat;
+ };
+service : {
+  _immutableObjectStorageBlobsAreLive: (hashes: vec blob) -> (vec bool) query;
+  _immutableObjectStorageBlobsToDelete: () -> (vec blob) query;
+  _immutableObjectStorageConfirmBlobDeletion: (blobs: vec blob) -> ();
+  _immutableObjectStorageCreateCertificate: (blobHash: text) ->
+   (_ImmutableObjectStorageCreateCertificateResult);
+  _immutableObjectStorageRefillCashier: (refillInformation:
+   opt _ImmutableObjectStorageRefillInformation) ->
+   (_ImmutableObjectStorageRefillResult);
+  _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
+  _initializeAccessControl: () -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  deleteAllMessages: () -> ();
+  deleteMessage: (id: MessageId) -> ();
+  deleteThread: (threadId: nat) -> ();
+  emptyTrash: () -> ();
+  getAllMessages: () -> (vec Message) query;
+  getAllMessagesByRecipient: () -> (vec Message) query;
+  getAllMessagesBySender: () -> (vec Message) query;
+  getAllMessagesBySenderAndRecipient: () -> (vec Message) query;
+  getAllMessagesBySubject: () -> (vec Message) query;
+  getAllMessagesByThread: () -> (vec Message) query;
+  getAllMessagesByTimestamp: () -> (vec Message) query;
+  getAllThreads: () -> (vec ThreadMessageSummary) query;
+  getAllThreadsBySubject: () -> (vec ThreadMessageSummary) query;
+  getAllThreadsByTimestamp: () -> (vec ThreadMessageSummary) query;
+  getAllUsers: () -> (vec record {
+                            principal;
+                            text;
+                          }) query;
+  getAllUsersByPrincipal: () -> (vec record {
+                                       principal;
+                                       text;
+                                     }) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getConversation: (partner: principal) -> (vec Message) query;
+  getInbox: () -> (vec Message) query;
+  getInboxBySender: () -> (vec Message) query;
+  getInboxBySubject: () -> (vec Message) query;
+  getInboxByThread: () -> (vec Message) query;
+  getMessageById: (id: MessageId) -> (opt Message) query;
+  getOutbox: () -> (vec Message) query;
+  getOutboxByRecipient: () -> (vec Message) query;
+  getOutboxBySubject: () -> (vec Message) query;
+  getOutboxByThread: () -> (vec Message) query;
+  getOwnUsername: () -> (text) query;
+  getPrincipalByUsername: (username: text) -> (principal) query;
+  getThread: (threadId: nat) -> (vec Message) query;
+  getTrash: () -> (vec Message) query;
+  getUnreadMessageCount: () -> (nat) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  getUsernameByPrincipal: ("principal": principal) -> (text) query;
+  isAdmin: () -> (bool);
+  isCallerAdmin: () -> (bool) query;
+  isUsernameAvailable: (username: text) -> (bool) query;
+  markAllMessagesAsRead: () -> ();
+  markMessageAsRead: (id: MessageId) -> ();
+  register: (username: text) -> ();
+  replyToMessage: (messageId: MessageId, subject: text, body: text) ->
+   (MessageId);
+  restoreThread: (threadId: nat) -> ();
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  seedReplyChain: (count: opt nat) -> ();
+  seedSampleMessages: (recipient: opt principal, count: opt nat) -> ();
+  sendMessage: (input: MessageInput) -> (MessageId);
+  sendMessageWithReply: (message: Message) -> ();
+  trashThread: (threadId: nat) -> ();
+  updateMessage: (id: MessageId, updates: MessageUpdate) -> ();
+  updateUsername: (newUsername: text) -> ();
+}
